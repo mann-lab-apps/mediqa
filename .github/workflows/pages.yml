@@ -31,7 +31,8 @@ jobs:
       - name: Configure Apps Script endpoint
         env:
           MEDIQA_APPS_SCRIPT_URL: ${{ secrets.MEDIQA_APPS_SCRIPT_URL }}
-        run: node -e "const fs = require('fs'); const url = process.env.MEDIQA_APPS_SCRIPT_URL || ''; fs.writeFileSync('public/config.js', `window.MEDIQA_CONFIG = {\n  appsScriptUrl: ${JSON.stringify(url)}\n};\n`);"
+        run: |
+          node -e 'const fs = require("fs"); const url = process.env.MEDIQA_APPS_SCRIPT_URL || ""; fs.writeFileSync("public/config.js", "window.MEDIQA_CONFIG = {\n  appsScriptUrl: " + JSON.stringify(url) + "\n};\n");'
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
