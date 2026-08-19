@@ -54,20 +54,9 @@ a {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   text-decoration: none;
+  font-size: 22px;
   font-weight: 800;
-}
-
-.brand-mark {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  color: #ffffff;
-  background: var(--brand);
-  border-radius: 8px;
-  font-size: 17px;
 }
 
 .nav-links {

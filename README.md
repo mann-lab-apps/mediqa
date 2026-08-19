@@ -1,8 +1,8 @@
-# MediQA MVP
+# MediQA
 
-MediQA is a lightweight MVP landing page for validating whether medical device and digital health teams want fast product feedback from real medical professionals before formal usability evaluation.
+MediQA is a lightweight landing page for connecting medical device and digital health teams with real medical professionals for fast product feedback before formal usability evaluation.
 
-The MVP intentionally stays small:
+The public site intentionally stays small:
 
 - Landing page
 - Medical professional registration form
@@ -23,6 +23,16 @@ Open:
 ```text
 http://127.0.0.1:5178
 ```
+
+## Production
+
+GitHub Pages serves the public site at:
+
+```text
+https://mediqa.mannlab.app
+```
+
+The custom domain is configured through `public/CNAME`, which is included in the Pages artifact.
 
 ## Google Sheets Storage
 

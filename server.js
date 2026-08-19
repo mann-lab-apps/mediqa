@@ -147,7 +147,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`MVP landing page is running at http://127.0.0.1:${PORT}`);
+  console.log(`MediQA landing page is running at http://127.0.0.1:${PORT}`);
   console.log(`Submissions: ${SUBMISSIONS_FILE}`);
   console.log(`Events: ${EVENTS_FILE}`);
 });

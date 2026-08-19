@@ -47,7 +47,7 @@ In Apps Script:
 
 Recommended settings:
 
-- Description: `MediQA MVP intake endpoint`
+- Description: `MediQA intake endpoint`
 - Execute as: `Me`
 - Who has access: `Anyone`
 
