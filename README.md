@@ -34,6 +34,12 @@ https://mediqa.mannlab.app
 
 The custom domain is configured through `public/CNAME`, which is included in the Pages artifact.
 
+## Analytics
+
+Set the GitHub Actions secret `MEDIQA_GA_MEASUREMENT_ID` to the GA4 Measurement ID, such as `G-XXXXXXXXXX`.
+
+When the secret is present, the Pages workflow writes it into `public/config.js` during deployment and the site loads Google Analytics automatically. Form field values are not sent to GA; only page and interaction events are tracked.
+
 ## Google Sheets Storage
 
 1. Create a private Google Sheet.

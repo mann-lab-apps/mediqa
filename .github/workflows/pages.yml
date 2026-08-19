@@ -28,11 +28,12 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Configure Apps Script endpoint
+      - name: Configure runtime config
         env:
           MEDIQA_APPS_SCRIPT_URL: ${{ secrets.MEDIQA_APPS_SCRIPT_URL }}
+          MEDIQA_GA_MEASUREMENT_ID: ${{ secrets.MEDIQA_GA_MEASUREMENT_ID }}
         run: |
-          node -e 'const fs = require("fs"); const url = process.env.MEDIQA_APPS_SCRIPT_URL || ""; fs.writeFileSync("public/config.js", "window.MEDIQA_CONFIG = {\n  appsScriptUrl: " + JSON.stringify(url) + "\n};\n");'
+          node -e 'const fs = require("fs"); const config = { appsScriptUrl: process.env.MEDIQA_APPS_SCRIPT_URL || "", gaMeasurementId: process.env.MEDIQA_GA_MEASUREMENT_ID || "" }; fs.writeFileSync("public/config.js", "window.MEDIQA_CONFIG = " + JSON.stringify(config, null, 2) + ";\n");'
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

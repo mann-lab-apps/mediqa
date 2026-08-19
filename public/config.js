@@ -1,3 +1,4 @@
 window.MEDIQA_CONFIG = {
-  appsScriptUrl: ""
+  appsScriptUrl: "",
+  gaMeasurementId: ""
 };

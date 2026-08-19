@@ -8,6 +8,23 @@ const TRACKED_UTM_KEYS = [
 
 const mediqaConfig = window.MEDIQA_CONFIG || {};
 
+function initGoogleAnalytics() {
+  if (!mediqaConfig.gaMeasurementId) return;
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function gtag() {
+    window.dataLayer.push(arguments);
+  };
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(mediqaConfig.gaMeasurementId)}`;
+  document.head.appendChild(script);
+
+  window.gtag("js", new Date());
+  window.gtag("config", mediqaConfig.gaMeasurementId);
+}
+
 function collectUtm() {
   const params = new URLSearchParams(window.location.search);
   const stored = JSON.parse(window.localStorage.getItem("mediqaUtm") || "{}");
@@ -58,7 +75,12 @@ function track(name, meta = {}) {
     page: pageMeta()
   };
 
-  if (window.dataLayer && Array.isArray(window.dataLayer)) {
+  if (window.gtag) {
+    window.gtag("event", name, {
+      ...meta,
+      ...Object.fromEntries(Object.entries(utm).map(([key, value]) => [`utm_${key.replace(/^utm_/, "")}`, value]))
+    });
+  } else if (window.dataLayer && Array.isArray(window.dataLayer)) {
     window.dataLayer.push({ event: name, ...meta, utm });
   }
 
@@ -134,6 +156,7 @@ function activateFormTab(type, options = {}) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initGoogleAnalytics();
   track("landing_view");
 
   document.querySelectorAll("[data-track]").forEach((element) => {
