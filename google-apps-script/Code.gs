@@ -10,6 +10,7 @@ const MEDIQA_PROPERTIES = {
 };
 
 const MEDIQA_DEFAULT_NOTIFICATION_EMAIL = "daga4242@gmail.com";
+const MEDIQA_SCRIPT_VERSION = "2026-08-19-email-notification-v2";
 
 const MEDIQA_HEADERS = {
   clinician: [
@@ -146,6 +147,7 @@ function doGet() {
   return jsonResponse_({
     ok: true,
     service: "MediQA Sheets endpoint",
+    version: MEDIQA_SCRIPT_VERSION,
     message: "Use POST to submit MediQA events and form responses."
   });
 }
