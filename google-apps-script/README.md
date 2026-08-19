@@ -31,12 +31,13 @@ Run `setupMediqaSheets()` once from Apps Script. Google will ask for authorizati
 
 To receive an email when a medical professional registration or company free pilot request is submitted:
 
-1. In `Code.gs`, find `setMediqaNotificationEmail()`.
-2. Replace `YOUR_EMAIL@example.com` with your notification email.
-3. Run `setMediqaNotificationEmail()` once from Apps Script.
-4. Approve the MailApp permission prompt.
+1. Run `setMediqaNotificationEmail()` once from Apps Script.
+2. Run `sendMediqaNotificationTest()` once from Apps Script.
+3. Approve the MailApp permission prompt.
+4. Confirm that the test email arrives at `daga4242@gmail.com`.
 
 Events such as `landing_view` are not emailed. Only actual form submissions trigger email notifications.
+If email sending fails during a form submission, the error is written to the `Errors` tab.
 
 ## 4. Deploy as Web App
 

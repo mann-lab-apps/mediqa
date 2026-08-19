@@ -9,6 +9,8 @@ const MEDIQA_PROPERTIES = {
   notificationEmail: "MEDIQA_NOTIFICATION_EMAIL"
 };
 
+const MEDIQA_DEFAULT_NOTIFICATION_EMAIL = "daga4242@gmail.com";
+
 const MEDIQA_HEADERS = {
   clinician: [
     "receivedAt",
@@ -95,8 +97,24 @@ function setupMediqaSheets() {
 }
 
 function setMediqaNotificationEmail() {
-  const email = "YOUR_EMAIL@example.com";
-  PropertiesService.getScriptProperties().setProperty(MEDIQA_PROPERTIES.notificationEmail, email);
+  PropertiesService
+    .getScriptProperties()
+    .setProperty(MEDIQA_PROPERTIES.notificationEmail, MEDIQA_DEFAULT_NOTIFICATION_EMAIL);
+}
+
+function sendMediqaNotificationTest() {
+  const email = getNotificationEmail_();
+  MailApp.sendEmail({
+    to: email,
+    subject: "[MediQA] 알림 메일 테스트",
+    body: [
+      "MediQA 알림 메일 테스트입니다.",
+      "",
+      `발송 시각: ${new Date().toISOString()}`,
+      "",
+      "이 메일이 도착하면 Apps Script의 MailApp 권한과 알림 수신 주소가 정상입니다."
+    ].join("\n")
+  });
 }
 
 function doPost(e) {
@@ -232,6 +250,7 @@ function sendSubmissionNotification_(type, record) {
     });
   } catch (error) {
     console.error(`Failed to send MediQA notification: ${error.message}`);
+    appendNotificationError_(error, type, record);
   }
 }
 
@@ -279,7 +298,24 @@ function buildCompanyNotificationBody_(record) {
 function getNotificationEmail_() {
   return PropertiesService
     .getScriptProperties()
-    .getProperty(MEDIQA_PROPERTIES.notificationEmail);
+    .getProperty(MEDIQA_PROPERTIES.notificationEmail) || MEDIQA_DEFAULT_NOTIFICATION_EMAIL;
+}
+
+function appendNotificationError_(error, type, record) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet_(spreadsheet, MEDIQA_SHEETS.error);
+  const headers = ensureHeader_(sheet, MEDIQA_HEADERS.error);
+  appendRecord_(sheet, headers, {
+    receivedAt: new Date().toISOString(),
+    id: Utilities.getUuid(),
+    message: `Notification failed: ${error.message}`,
+    raw_body: "",
+    raw_json: JSON.stringify({
+      type,
+      record,
+      stack: error.stack || ""
+    })
+  });
 }
 
 function appendRecord_(sheet, headers, record) {
