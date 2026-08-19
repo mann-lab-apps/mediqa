@@ -5,6 +5,10 @@ const MEDIQA_SHEETS = {
   error: "Errors"
 };
 
+const MEDIQA_PROPERTIES = {
+  notificationEmail: "MEDIQA_NOTIFICATION_EMAIL"
+};
+
 const MEDIQA_HEADERS = {
   clinician: [
     "receivedAt",
@@ -90,6 +94,11 @@ function setupMediqaSheets() {
   });
 }
 
+function setMediqaNotificationEmail() {
+  const email = "YOUR_EMAIL@example.com";
+  PropertiesService.getScriptProperties().setProperty(MEDIQA_PROPERTIES.notificationEmail, email);
+}
+
 function doPost(e) {
   try {
     const payload = parsePayload_(e);
@@ -126,15 +135,17 @@ function doGet() {
 function appendSubmission_(type, payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(5000);
+  let record;
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = getOrCreateSheet_(spreadsheet, MEDIQA_SHEETS[type]);
     const headers = ensureHeader_(sheet, MEDIQA_HEADERS[type]);
-    const record = flattenSubmission_(payload);
+    record = flattenSubmission_(payload);
     appendRecord_(sheet, headers, record);
   } finally {
     lock.releaseLock();
   }
+  sendSubmissionNotification_(type, record);
 }
 
 function appendEvent_(payload) {
@@ -201,6 +212,74 @@ function flattenBase_(payload) {
     page_referrer: page.referrer || "",
     page_title: page.title || ""
   };
+}
+
+function sendSubmissionNotification_(type, record) {
+  const email = getNotificationEmail_();
+  if (!email) return;
+
+  const label = type === "company" ? "무료 파일럿 신청" : "의료전문가 등록";
+  const subject = `[MediQA] ${label}이 접수되었습니다`;
+  const body = type === "company"
+    ? buildCompanyNotificationBody_(record)
+    : buildClinicianNotificationBody_(record);
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject,
+      body
+    });
+  } catch (error) {
+    console.error(`Failed to send MediQA notification: ${error.message}`);
+  }
+}
+
+function buildClinicianNotificationBody_(record) {
+  return [
+    "MediQA 의료전문가 등록이 접수되었습니다.",
+    "",
+    `접수 시각: ${record.receivedAt}`,
+    `직군: ${record.role || ""}`,
+    `임상경력: ${record.clinicalExperience || ""}`,
+    `현직 여부: ${record.currentStatus || ""}`,
+    `근무부서/진료영역: ${record.department || ""}`,
+    `참여 방식: ${record.testMode || ""}`,
+    `참여 가능 일정: ${record.availability || ""}`,
+    `희망 사례비: ${record.expectedFee || ""}`,
+    `연락처: ${record.contact || ""}`,
+    `UTM source: ${record.utm_source || ""}`,
+    "",
+    "자세한 내용은 Google Sheet의 Clinician Registrations 탭에서 확인하세요."
+  ].join("\n");
+}
+
+function buildCompanyNotificationBody_(record) {
+  return [
+    "MediQA 무료 파일럿 신청이 접수되었습니다.",
+    "",
+    `접수 시각: ${record.receivedAt}`,
+    `회사명: ${record.companyName || ""}`,
+    `담당자: ${record.contactName || ""}`,
+    `연락처/이메일: ${record.contact || ""}`,
+    `제품 유형: ${record.productType || ""}`,
+    `개발 단계: ${record.stage || ""}`,
+    `원하는 의료전문가: ${record.targetRole || ""}`,
+    `필요 경력/근무영역: ${record.targetExperience || ""}`,
+    `인원: ${record.participantCount || ""}`,
+    `테스트 방식: ${record.testMode || ""}`,
+    `예상 테스트 시간: ${record.sessionLength || ""}`,
+    `희망 일정: ${record.preferredSchedule || ""}`,
+    `UTM source: ${record.utm_source || ""}`,
+    "",
+    "자세한 내용은 Google Sheet의 Company Pilots 탭에서 확인하세요."
+  ].join("\n");
+}
+
+function getNotificationEmail_() {
+  return PropertiesService
+    .getScriptProperties()
+    .getProperty(MEDIQA_PROPERTIES.notificationEmail);
 }
 
 function appendRecord_(sheet, headers, record) {

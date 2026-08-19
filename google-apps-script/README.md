@@ -27,7 +27,18 @@ Replace the default code with the contents of:
 
 Run `setupMediqaSheets()` once from Apps Script. Google will ask for authorization.
 
-## 3. Deploy as Web App
+## 3. Optional Email Notifications
+
+To receive an email when a medical professional registration or company free pilot request is submitted:
+
+1. In `Code.gs`, find `setMediqaNotificationEmail()`.
+2. Replace `YOUR_EMAIL@example.com` with your notification email.
+3. Run `setMediqaNotificationEmail()` once from Apps Script.
+4. Approve the MailApp permission prompt.
+
+Events such as `landing_view` are not emailed. Only actual form submissions trigger email notifications.
+
+## 4. Deploy as Web App
 
 In Apps Script:
 
@@ -41,7 +52,7 @@ Recommended settings:
 
 Copy the generated Web App URL.
 
-## 4. Connect the Landing Page
+## 5. Connect the Landing Page
 
 Open:
 
