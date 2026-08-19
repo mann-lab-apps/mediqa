@@ -1,6 +1,7 @@
 const MEDIQA_SHEETS = {
   clinician: "Clinician Registrations",
   company: "Company Pilots",
+  notification: "Notifications",
   event: "Events",
   error: "Errors"
 };
@@ -64,6 +65,18 @@ const MEDIQA_HEADERS = {
     "page_title",
     "raw_json"
   ],
+  notification: [
+    "receivedAt",
+    "id",
+    "type",
+    "submissionId",
+    "to",
+    "subject",
+    "status",
+    "errorMessage",
+    "quotaRemaining",
+    "raw_json"
+  ],
   event: [
     "receivedAt",
     "id",
@@ -105,9 +118,25 @@ function setMediqaNotificationEmail() {
 
 function sendMediqaNotificationTest() {
   const email = getNotificationEmail_();
+  const subject = "[MediQA] 알림 메일 테스트";
+  const notificationId = Utilities.getUuid();
+
+  appendNotificationRecord_({
+    receivedAt: new Date().toISOString(),
+    id: notificationId,
+    type: "test",
+    submissionId: "",
+    to: email,
+    subject,
+    status: "attempting",
+    errorMessage: "",
+    quotaRemaining: getMailQuotaRemaining_(),
+    raw_json: JSON.stringify({ scriptVersion: MEDIQA_SCRIPT_VERSION })
+  });
+
   MailApp.sendEmail({
     to: email,
-    subject: "[MediQA] 알림 메일 테스트",
+    subject,
     body: [
       "MediQA 알림 메일 테스트입니다.",
       "",
@@ -115,6 +144,19 @@ function sendMediqaNotificationTest() {
       "",
       "이 메일이 도착하면 Apps Script의 MailApp 권한과 알림 수신 주소가 정상입니다."
     ].join("\n")
+  });
+
+  appendNotificationRecord_({
+    receivedAt: new Date().toISOString(),
+    id: notificationId,
+    type: "test",
+    submissionId: "",
+    to: email,
+    subject,
+    status: "sent",
+    errorMessage: "",
+    quotaRemaining: getMailQuotaRemaining_(),
+    raw_json: JSON.stringify({ scriptVersion: MEDIQA_SCRIPT_VERSION })
   });
 }
 
@@ -243,6 +285,20 @@ function sendSubmissionNotification_(type, record) {
   const body = type === "company"
     ? buildCompanyNotificationBody_(record)
     : buildClinicianNotificationBody_(record);
+  const notificationId = Utilities.getUuid();
+
+  appendNotificationRecord_({
+    receivedAt: new Date().toISOString(),
+    id: notificationId,
+    type,
+    submissionId: record.id || "",
+    to: email,
+    subject,
+    status: "attempting",
+    errorMessage: "",
+    quotaRemaining: getMailQuotaRemaining_(),
+    raw_json: JSON.stringify({ scriptVersion: MEDIQA_SCRIPT_VERSION, record })
+  });
 
   try {
     MailApp.sendEmail({
@@ -250,8 +306,36 @@ function sendSubmissionNotification_(type, record) {
       subject,
       body
     });
+    appendNotificationRecord_({
+      receivedAt: new Date().toISOString(),
+      id: notificationId,
+      type,
+      submissionId: record.id || "",
+      to: email,
+      subject,
+      status: "sent",
+      errorMessage: "",
+      quotaRemaining: getMailQuotaRemaining_(),
+      raw_json: JSON.stringify({ scriptVersion: MEDIQA_SCRIPT_VERSION, record })
+    });
   } catch (error) {
     console.error(`Failed to send MediQA notification: ${error.message}`);
+    appendNotificationRecord_({
+      receivedAt: new Date().toISOString(),
+      id: notificationId,
+      type,
+      submissionId: record.id || "",
+      to: email,
+      subject,
+      status: "failed",
+      errorMessage: error.message,
+      quotaRemaining: getMailQuotaRemaining_(),
+      raw_json: JSON.stringify({
+        scriptVersion: MEDIQA_SCRIPT_VERSION,
+        record,
+        stack: error.stack || ""
+      })
+    });
     appendNotificationError_(error, type, record);
   }
 }
@@ -318,6 +402,25 @@ function appendNotificationError_(error, type, record) {
       stack: error.stack || ""
     })
   });
+}
+
+function appendNotificationRecord_(record) {
+  try {
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getOrCreateSheet_(spreadsheet, MEDIQA_SHEETS.notification);
+    const headers = ensureHeader_(sheet, MEDIQA_HEADERS.notification);
+    appendRecord_(sheet, headers, record);
+  } catch (error) {
+    console.error(`Failed to write MediQA notification log: ${error.message}`);
+  }
+}
+
+function getMailQuotaRemaining_() {
+  try {
+    return MailApp.getRemainingDailyQuota();
+  } catch (error) {
+    return `unavailable: ${error.message}`;
+  }
 }
 
 function appendRecord_(sheet, headers, record) {
