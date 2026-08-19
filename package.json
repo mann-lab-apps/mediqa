@@ -1,0 +1,13 @@
+{
+  "name": "mediqa-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MediQA MVP landing page for fast healthcare professional product testing.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
